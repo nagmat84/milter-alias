@@ -95,8 +95,8 @@ void cleanup_rt_setting( void ) {
 	rt_setting.socket_file = NULL;
 
 	free( rt_setting.ldap_bind.host );
-	rt_setting.ldap_bind.dn = NULL;
-	free( rt_setting.ldap_bind.host );
+	rt_setting.ldap_bind.host = NULL;
+	free( rt_setting.ldap_bind.dn );
 	rt_setting.ldap_bind.dn = NULL;
 	free( rt_setting.ldap_bind.passwd );
 	rt_setting.ldap_bind.passwd = NULL;
