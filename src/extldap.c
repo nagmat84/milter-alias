@@ -43,6 +43,13 @@ int connect_ldap( void ) {
 		return EX_IOERR;
 	}
 
+	log_msg(
+		LOG_INFO,
+		"connect_ldap: succeeded (host = \"%s\", user = \"%s\")\n",
+		rt_setting.ldap_bind.host,
+		rt_setting.ldap_bind.passwd
+	);
+
 	return EX_OK;
 }
 

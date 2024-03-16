@@ -49,7 +49,7 @@ sfsistat mlfi_eom_cb( SMFICTX* ctx ) {
 
 	// If we do not have any private data something went wrong
 	if( priv_data == NULL ) {
-		log_msg( LOG_CRIT, "mlfi_epm_cb called, but could not find data from previous mlfi_envfrom_cb\n" );
+		log_msg( LOG_CRIT, "mlfi_eom_cb called, but could not find data from previous mlfi_envfrom_cb\n" );
 		return SMFIS_TEMPFAIL;
 	}
 
@@ -58,7 +58,7 @@ sfsistat mlfi_eom_cb( SMFICTX* ctx ) {
 	if( get_string_array_size( list_addresses ) != 0 ) {
 		log_msg(
 			LOG_DEBUG,
-			"mlfi_epm_cb (%p): sender is a mailing list: %s\n",
+			"mlfi_eom_cb (%p): sender is a mailing list: %s\n",
 			(void*)priv_data,
 			priv_data->envelope_sender
 		);
@@ -71,13 +71,13 @@ sfsistat mlfi_eom_cb( SMFICTX* ctx ) {
 		char const * bcc;
 		for( size_t i = 0; i != size; ++i ) {
 			bcc = (char*)get_string_array_at( list_addresses, i );
-			log_msg( LOG_DEBUG, "mlfi_epm_cb (%p): adding bcc to: %s\n", (void*)priv_data, bcc );
+			log_msg( LOG_DEBUG, "mlfi_eom_cb (%p): adding bcc to: %s\n", (void*)priv_data, bcc );
 			smfi_addrcpt( ctx, (char*)bcc );
 		}
 	} else {
 		log_msg(
 			LOG_DEBUG,
-			"mlfi_epm_cb (%p): sender is not a mailing list: %s\n",
+			"mlfi_eom_cb (%p): sender is not a mailing list: %s\n",
 			(void*)priv_data,
 			priv_data->envelope_sender
 		);
