@@ -74,7 +74,8 @@ int main( int argc, char* argv[] ) {
 	}
 
 	result_code = smfi_main();
-	if( result_code != EX_OK ) {
+	if( result_code != MI_SUCCESS ) {
+		result_code = EX_SOFTWARE;
 		log_msg( LOG_ERR, "smfi_main failed\n" );
 		notify_sm_failed( result_code, "main filter loop failed" );
 	}
