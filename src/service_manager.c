@@ -30,8 +30,8 @@ void notify_sm_terminated( void ) {
 		sd_notify(
 			0,
 			"STOPPING=1\n"
-			"ERRNO=0"
-			"STATUS=Exited successfully"
+			"ERRNO=0\n"
+			"STATUS=Exited successfully\n"
 		);
 		sd_notify_barrier( 0, TIMEOUT_BARRIER );
 	}

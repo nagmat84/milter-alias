@@ -60,7 +60,7 @@ char const * push_onto_string_array( struct string_array_t* array, char const * 
 		}
 		array->values = new_buf;
 	}
-	array->values[ array->size ] = malloc( strlen( str ) );
+	array->values[ array->size ] = malloc( strlen( str ) + 1 );
 	if ( array->values[ array->size ] != NULL ) {
 		strcpy( array->values[ array->size ], str );
 	}
