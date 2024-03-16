@@ -1,0 +1,16 @@
+[Unit]
+Description=Mail Filter for Reverse Aliases
+Requires=slapd.service
+After=slapd.service
+Before=postfix.service
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/milter-alias
+PIDFile=/run/milter-alias/milter-alias.pid
+User=postfix
+Group=postfix
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
