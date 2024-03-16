@@ -33,8 +33,6 @@ void free_priv_data( struct priv_data_t * const priv_data );
  * @brief Sets the envelope sender.
  *
  * Note, the function is NULL-pointer safe.
- * If a NULL pointer is passed to any argument, the function returns a
- * non-zero result code.
  *
  * @param priv_data Pointer to the object to be modified.
  * @param envelope_sender Null-terminated string with the value to be set.
@@ -46,8 +44,6 @@ int set_priv_data_envelope_sender( struct priv_data_t * const priv_data, char co
  * @brief Sets the authenticated account.
  *
  * Note, the function is NULL-pointer safe.
- * If a NULL pointer is passed to any argument, the function returns a
- * non-zero result code.
  *
  * @param priv_data Pointer to the object to be modified.
  * @param auth_acct Null-terminated string with the value to be set.

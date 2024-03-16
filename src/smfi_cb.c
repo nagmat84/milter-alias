@@ -4,12 +4,23 @@
 #include "smfi_cb.h"
 #include "priv_data.h"
 #include "extldap.h"
+#include "extstring.h"
 #include "log.h"
 
 static char * const AUTH_ACCT_MACRO = "{auth_authen}";
 
 sfsistat mlfi_envfrom_cb( SMFICTX * ctx, char* envfrom[] ) {
-	int return_code = 0;
+	char const * const auth_acct = smfi_getsymval( ctx, AUTH_ACCT_MACRO );
+
+	// Incoming mails from public SMTP servers have no autenticated session.
+	// In this case auth_acct is NULL or empty and we don't have to save anything.
+	if ( auth_acct == NULL || *auth_acct == '\0' ) {
+		return SMFIS_CONTINUE;
+	}
+
+	// If we have an authenticated session, we save session information
+	// in the private data area for later use in EOM callback.
+
 	struct priv_data_t* priv_data = create_priv_data();
 
 	// envfrom - Null-terminated SMTP command arguments;
@@ -17,26 +28,20 @@ sfsistat mlfi_envfrom_cb( SMFICTX * ctx, char* envfrom[] ) {
 	// Later arguments are the ESMTP arguments.
 	//
 	// See: https://fossies.org/linux/sendmail/libmilter/docs/xxfi_envfrom.html
-	return_code |= set_priv_data_envelope_sender( priv_data, envfrom[0] );
-	return_code |= set_priv_data_auth_acct( priv_data, smfi_getsymval( ctx, AUTH_ACCT_MACRO ) );
-
-	if( return_code != 0 ) {
-		log_msg( LOG_CRIT, "mlfi_envfrom_cb failed: could not determine envelope sender or authenticated account\n" );
-		free_priv_data( priv_data );
-		return SMFIS_TEMPFAIL;
-	}
+	set_priv_data_envelope_sender( priv_data, envfrom[0] );
+	set_priv_data_auth_acct( priv_data, auth_acct );
 
 	log_msg(
 		LOG_DEBUG,
 		"mlfi_env_from_cb (%p): envelope sender:       %s\n",
 		(void*)priv_data,
-		priv_data->envelope_sender
+		str_or_null( priv_data->envelope_sender )
 	);
 	log_msg(
 		LOG_DEBUG,
 		"mlfi_env_from_cb (%p): authenticated account: %s\n",
 		(void*)priv_data,
-		priv_data->auth_acct
+		str_or_null( priv_data->auth_acct )
 	);
 
 	// Save pointer to private data in SMFI context
@@ -47,10 +52,12 @@ sfsistat mlfi_envfrom_cb( SMFICTX * ctx, char* envfrom[] ) {
 sfsistat mlfi_eom_cb( SMFICTX* ctx ) {
 	struct priv_data_t* priv_data = (struct priv_data_t*) smfi_getpriv( ctx );
 
-	// If we do not have any private data something went wrong
+	// If we do not have any private data, the current mail is likely an
+	// incoming mail from a public SMTP server without an authenticated
+	// session.
+	// In this case, there is nothing to do for us.
 	if( priv_data == NULL ) {
-		log_msg( LOG_CRIT, "mlfi_eom_cb called, but could not find data from previous mlfi_envfrom_cb\n" );
-		return SMFIS_TEMPFAIL;
+		return SMFIS_CONTINUE;
 	}
 
 	struct string_array_t* list_addresses = search_mail_addresses_of_list( priv_data->envelope_sender );

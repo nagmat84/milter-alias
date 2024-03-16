@@ -22,10 +22,14 @@ void free_priv_data( struct priv_data_t * const priv_data ) {
 }
 
 int set_priv_data_envelope_sender( struct priv_data_t * const priv_data, char const * const envelope_sender ) {
-	if( priv_data == NULL || envelope_sender == NULL )
+	if( priv_data == NULL )
 		return 1;
 	free( priv_data->envelope_sender );
-	priv_data->envelope_sender = malloc( strlen( envelope_sender ) );
+	if( envelope_sender == NULL ) {
+		priv_data->envelope_sender = NULL;
+		return 0;
+	}
+	priv_data->envelope_sender = malloc( strlen( envelope_sender ) + 1 );
 	if( priv_data->envelope_sender == NULL ) {
 		return 1;
 	}
@@ -34,10 +38,14 @@ int set_priv_data_envelope_sender( struct priv_data_t * const priv_data, char co
 }
 
 int set_priv_data_auth_acct( struct priv_data_t * const priv_data, char const * const auth_acct ) {
-	if( priv_data == NULL || auth_acct == NULL )
+	if( priv_data == NULL )
 		return 1;
 	free( priv_data->auth_acct );
-	priv_data->auth_acct = malloc( strlen( auth_acct ) );
+	if( auth_acct == NULL ) {
+		priv_data->auth_acct = NULL;
+		return 0;
+	}
+	priv_data->auth_acct = malloc( strlen( auth_acct ) + 1 );
 	if( priv_data->auth_acct == NULL ) {
 		return 1;
 	}
