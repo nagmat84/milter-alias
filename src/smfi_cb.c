@@ -1,4 +1,6 @@
 #include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
 #include <libmilter/mfdef.h>
 
 #include "smfi_cb.h"
@@ -28,7 +30,23 @@ sfsistat mlfi_envfrom_cb( SMFICTX * ctx, char* envfrom[] ) {
 	// Later arguments are the ESMTP arguments.
 	//
 	// See: https://fossies.org/linux/sendmail/libmilter/docs/xxfi_envfrom.html
-	set_priv_data_envelope_sender( priv_data, envfrom[0] );
+	//
+	// Normalize,envelope from address.
+	// In case it is surrounded by angular brackets , e.g. `<local@domain.tld>`,
+	// remove the brackets.
+	size_t const env_from_addr_len = strlen( envfrom[0] );
+	char* env_from_addr = NULL;
+	if ( envfrom[0][0] == '<' ) {
+		env_from_addr = malloc( env_from_addr_len - 1 );
+		strncpy( env_from_addr, envfrom[0] + 1, env_from_addr_len - 2 );
+		env_from_addr[ env_from_addr_len - 2 ] = '\0';
+	} else {
+		env_from_addr = malloc( env_from_addr_len + 1 );
+		strncpy( env_from_addr, envfrom[0], env_from_addr_len );
+		env_from_addr[ env_from_addr_len ] = '\0';
+	}
+	set_priv_data_envelope_sender( priv_data, env_from_addr );
+	free( env_from_addr );
 	set_priv_data_auth_acct( priv_data, auth_acct );
 
 	log_msg(
