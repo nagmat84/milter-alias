@@ -73,8 +73,8 @@ static void decompose_mail_address( char const * const addr, char** local, char*
 }
 
 /**
- * Constructs a specific filter from a filter template by substituting
- * placeholders with parts of the provided mail address
+ * Substitutes the placeholders in a template with parts of the provided mail
+ * address.
  *
  * The following placeholders are supported:
  *
@@ -82,11 +82,11 @@ static void decompose_mail_address( char const * const addr, char** local, char*
  *  - `%d` is replaced by the domain part
  *  - `%n` is replaced by the local part
  *
- * @param filter_template The filter template which with place holders
+ * @param template The template which with place holders
  * @param mail_address The mail address to use to substitute the place holders
  * @return The constructed filter; the caller must free the result
  */
-static char* construct_filter( char const * const filter_template, char const * const mail_address ) {
+static char* replace_placeholders( char const * const template, char const * const mail_address ) {
 	// TODO: Make this code safe against injection attacks.
 	// We replace the place holders by user-supplied data without escaping.
 	// TODO: Escape the following special LDAP symbols as follows
@@ -104,14 +104,13 @@ static char* construct_filter( char const * const filter_template, char const * 
 	char* local = NULL;
 	char* domain = NULL;
 	decompose_mail_address( mail_address, &local, &domain );
-	char * const buf1 = str_replace( filter_template, "%u", mail_address );
+	char * const buf1 = str_replace( template, "%u", mail_address );
 	char * const buf2 = str_replace( buf1, "%d", domain );
 	char* filter = str_replace( buf2, "%n", local );
 	free( buf1 );
 	free( buf2 );
 	free( local );
 	free( domain );
-	log_msg( LOG_DEBUG, "Constructed LDAP filter: %s\n", filter );
 	return filter;
 }
 
@@ -120,6 +119,9 @@ static struct string_array_t* search_mail_addresses(
 	char const * const base,
 	char** const result_attributes
 ) {
+	log_msg( LOG_DEBUG, "search_mail_addresses: LDAP base: %s\n", base );
+	log_msg( LOG_DEBUG, "search_mail_addresses: LDAP filter: %s\n", filter );
+
 	LDAPMessage* ldap_result_msg = NULL;
 	int result_code = ldap_search_ext_s(
 		ldap_handle,
@@ -136,7 +138,7 @@ static struct string_array_t* search_mail_addresses(
 	);
 
 	if ( result_code != LDAP_SUCCESS ) {
-		log_msg( LOG_ERR, "ldap_search_ext_s failed: %s (%d)\n", ldap_err2string( result_code ), result_code );
+		log_msg( LOG_ERR, "search_mail_addresses: ldap_search_ext_s failed: %s (%d)\n", ldap_err2string( result_code ), result_code );
 		ldap_msgfree( ldap_result_msg );
 		return NULL;
 	}
@@ -147,10 +149,11 @@ static struct string_array_t* search_mail_addresses(
 	// If the array turns out to be too small, it will be re-allocated.
 	int const result_size = ldap_count_entries( ldap_handle, ldap_result_msg );
 	if ( result_size == -1 ) {
-		log_msg( LOG_ERR, "ldap_count_entries failed\n" );
+		log_msg( LOG_ERR, "search_mail_addresses: ldap_count_entries failed\n" );
 		ldap_msgfree( ldap_result_msg );
 		return NULL;
 	}
+	log_msg( LOG_DEBUG, "search_mail_addresses: LDAP result size: %d\n", result_size );
 	struct string_array_t* result = create_string_array( 3 * result_size );
 	if ( result_size == 0 ) {
 		// short-cut in case of an empty result set
@@ -173,7 +176,7 @@ static struct string_array_t* search_mail_addresses(
 			struct berval** values = ldap_get_values_len( ldap_handle, ldap_entry_msg, ldap_attr );
 			for( int i = 0; values[i] != NULL; ++i ) {
 				value = push_onto_string_array_l( result, values[i]->bv_val, values[i]->bv_len );
-				log_msg( LOG_DEBUG, "Found mail address: %s\n", value );
+				log_msg( LOG_DEBUG, "search_mail_addresses: found mail address: %s\n", value );
 			}
 			ldap_value_free_len( values );
 			ldap_memfree( ldap_attr );
@@ -187,29 +190,35 @@ static struct string_array_t* search_mail_addresses(
 }
 
 struct string_array_t* search_mail_addresses_of_list( const char* const sender ) {
-	char * const filter = construct_filter(
+	char * const filter = replace_placeholders(
 		rt_setting.ldap_mail_list_query.filter_template,
 		sender
 	);
-	struct string_array_t* result = search_mail_addresses(
-		filter,
+	char * const base_dn = replace_placeholders(
 		rt_setting.ldap_mail_list_query.base_dn,
-		rt_setting.ldap_mail_list_query.result_attributes
+		sender
+	);
+	struct string_array_t* result = search_mail_addresses(
+		filter, base_dn, rt_setting.ldap_mail_list_query.result_attributes
 	);
 	free( filter );
+	free( base_dn );
 	return result;
 }
 
 struct string_array_t* search_mail_addresses_by_account( char const * const acct ) {
-	char * const filter = construct_filter(
+	char * const filter = replace_placeholders(
 		rt_setting.ldap_mail_acct_query.filter_template,
 		acct
 	);
-	struct string_array_t* result = search_mail_addresses(
-		filter,
+	char * const base_dn = replace_placeholders(
 		rt_setting.ldap_mail_acct_query.base_dn,
-		rt_setting.ldap_mail_acct_query.result_attributes
+		acct
+	);
+	struct string_array_t* result = search_mail_addresses(
+		filter, base_dn, rt_setting.ldap_mail_acct_query.result_attributes
 	);
 	free( filter );
+	free( base_dn );
 	return result;
 }
