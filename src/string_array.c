@@ -130,7 +130,7 @@ void substract_string_array( struct string_array_t * const array, struct string_
 			// If `array[i2]` is already stored at `array[i1-1]` (note elements of
 			// `array` are not required to be unique), then discard `array[i2]`
 			// because we already have it once and only advance `i2`
-			if( i1 > 0 && array->values[i1-1] == array->values[i2] ) {
+			if( i1 > 0 && strcmp( array->values[i1-1], array->values[i2] ) == 0 ) {
 				free( array->values[i2] );
 				++i2;
 			} else {
@@ -148,7 +148,7 @@ void substract_string_array( struct string_array_t * const array, struct string_
 	// If we reached the end of `diff` but not of `array` keep the remaining
 	// elements in `array` but skip duplicates
 	while( i2 != array->size ) {
-		if( i1 > 0 && array->values[i1-1] == array->values[i2] ) {
+		if( i1 > 0 && strcmp( array->values[i1-1], array->values[i2] ) == 0 ) {
 			free( array->values[i2] );
 			++i2;
 		} else {
