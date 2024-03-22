@@ -1,5 +1,6 @@
 doc/*
 !doc/.gitkeep
+!doc/CMakeLists.txt
 build/*
 !build/.gitkeep
 .kdev4/
