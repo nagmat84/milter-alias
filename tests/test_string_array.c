@@ -198,6 +198,30 @@ START_TEST( test_substract_string_array_with_duplicates ) {
 }
 END_TEST
 
+START_TEST( test_substract_string_array_with_duplicates_at_end ) {
+	struct string_array_t* arr = create_string_array( 6 );
+	push_onto_string_array( arr, TEST_STRING_1 );
+	push_onto_string_array( arr, TEST_STRING_2 );
+	push_onto_string_array( arr, TEST_STRING_2 );
+	push_onto_string_array( arr, TEST_STRING_3 );
+	push_onto_string_array( arr, TEST_STRING_3 );
+	push_onto_string_array( arr, TEST_STRING_3 );
+	ck_assert_int_eq( get_string_array_size( arr ), 6 );
+
+	struct string_array_t* diff = create_string_array( 1 );
+	push_onto_string_array( diff, TEST_STRING_2 );
+	ck_assert_int_eq( get_string_array_size( diff ), 1 );
+
+	substract_string_array( arr, diff );
+	ck_assert_int_eq( get_string_array_size( arr ), 2 );
+	ck_assert_str_eq( TEST_STRING_1, get_string_array_at( arr, 0 ) );
+	ck_assert_str_eq( TEST_STRING_3, get_string_array_at( arr, 1 ) );
+
+	free_string_array( arr );
+	free_string_array( diff );
+}
+END_TEST
+
 Suite* create_string_array_suite( void ) {
 	Suite* s = suite_create( "string_array" );
 	TCase* tc;
@@ -240,6 +264,10 @@ Suite* create_string_array_suite( void ) {
 
 	tc = tcase_create( "test_substract_string_array_with_duplicates" );
 	tcase_add_test( tc, test_substract_string_array_with_duplicates );
+	suite_add_tcase( s, tc );
+
+	tc = tcase_create( "test_substract_string_array_with_duplicates_at_end" );
+	tcase_add_test( tc, test_substract_string_array_with_duplicates_at_end );
 	suite_add_tcase( s, tc );
 
 	return s;

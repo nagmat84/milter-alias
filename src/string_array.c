@@ -51,6 +51,10 @@ char const* get_string_array_at( struct string_array_t const * array, size_t con
 }
 
 char const * push_onto_string_array( struct string_array_t* array, char const * str ) {
+	return push_onto_string_array_l( array, str, strlen( str ) );
+}
+
+char const * push_onto_string_array_l( struct string_array_t* array, char const * str, size_t len ) {
 	if( array->size == array->capacity ) {
 		array->capacity *= 2;
 		char** new_buf = realloc( array->values, (array->capacity + 1) * sizeof( char* ) );
@@ -60,41 +64,18 @@ char const * push_onto_string_array( struct string_array_t* array, char const * 
 		}
 		array->values = new_buf;
 	}
-	array->values[ array->size ] = malloc( strlen( str ) + 1 );
+	array->values[ array->size ] = malloc( len + 1 );
 	if ( array->values[ array->size ] != NULL ) {
-		strcpy( array->values[ array->size ], str );
+		strncpy( array->values[ array->size ], str, len );
+		array->values[ array->size ][len] = '\0';
 	}
 	array->size++;
 	array->values[ array->size ] = NULL;
 	// Note: If we were able to increase the array size, but could allocate
-	// memory to copy the string, the line below returns `NULL` (instead
+	// memory to copy the string, the line below returns `NULL` (instead of
 	// a pointer to the newly allocated string) which is actually what we want
 	// to indicate an error.
 	return array->values[ array->size - 1 ];
-}
-
-char const * push_onto_string_array_l( struct string_array_t* array, char const * str, size_t len ) {
-		if( array->size == array->capacity ) {
-				array->capacity *= 2;
-				char** new_buf = realloc( array->values, (array->capacity + 1) * sizeof( char* ) );
-				if ( new_buf == NULL ) {
-						// could not increase array, return NULL to indicate error
-						return NULL;
-				}
-				array->values = new_buf;
-		}
-		array->values[ array->size ] = malloc( len + 1 );
-		if ( array->values[ array->size ] != NULL ) {
-				strncpy( array->values[ array->size ], str, len );
-				array->values[ array->size ][len] = '\0';
-		}
-		array->size++;
-		array->values[ array->size ] = NULL;
-		// Note: If we were able to increase the array size, but could allocate
-		// memory to copy the string, the line below returns `NULL` (instead
-		// a pointer to the newly allocated string) which is actually what we want
-		// to indicate an error.
-		return array->values[ array->size - 1 ];
 }
 
 static int comp( void const * a, void const * b ) {

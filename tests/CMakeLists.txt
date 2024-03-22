@@ -4,9 +4,9 @@ add_executable(
 	milter-alias-test
 	../src/extstring.c
 	../src/string_array.c
-	extstring.c
 	main.c
-	string_array.c
+	test_extstring.c
+	test_string_array.c
 )
 
 target_compile_options(milter-alias-test PRIVATE -Wall -Wextra -fprofile-arcs -ftest-coverage)

@@ -19,6 +19,15 @@ START_TEST( test_str_replace_null ) {
 }
 END_TEST
 
+START_TEST( test_str_replace_empty ) {
+	char * result = str_replace( TEST_STRING, "", NULL );
+	ck_assert_ptr_nonnull( result );
+	ck_assert_ptr_ne( result, TEST_STRING );
+	ck_assert_str_eq( result, TEST_STRING );
+	free( result );
+}
+END_TEST
+
 START_TEST( test_str_replace_with_null ) {
 	char * result = str_replace( TEST_STRING, "string", NULL );
 	ck_assert_ptr_nonnull( result );
@@ -93,6 +102,10 @@ Suite* create_ext_string_suite( void ) {
 
 	tc = tcase_create( "test_str_replace_null" );
 	tcase_add_test( tc, test_str_replace_null );
+	suite_add_tcase( s, tc );
+
+	tc = tcase_create( "test_str_replace_empty" );
+	tcase_add_test( tc, test_str_replace_empty );
 	suite_add_tcase( s, tc );
 
 	tc = tcase_create( "test_str_replace_with_null" );
