@@ -1,6 +1,9 @@
+#include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sysexits.h>
+#include <unistd.h>
 
 #include "smfi.h"
 #include "smfi_cb.h"
@@ -30,16 +33,28 @@ struct smfiDesc const FILTER_DESC = {
 	NULL              // option negotiation callback
 };
 
-int smfi_setup( void ) {
+int setup_smfi( void ) {
 	if( smfi_setconn( rt_setting.socket_file ) != MI_SUCCESS ) {
-		log_msg( LOG_CRIT, "smfi_setconn failed\n" );
+		log_msg( LOG_CRIT, "smfi_setup: smfi_setconn failed\n" );
 		return EX_UNAVAILABLE;
 	}
 
 	if( smfi_register( FILTER_DESC ) != MI_SUCCESS ) {
-		log_msg( LOG_CRIT, "smfi_register failed\n" );
+		log_msg( LOG_CRIT, "smfi_setup: smfi_register failed\n" );
 		return EX_UNAVAILABLE;
 	}
 
 	return EX_OK;
+}
+
+int cleanup_smfi( void ) {
+	if(
+		rt_setting.socket_file != NULL &&
+		unlink( rt_setting.socket_file ) != 0 &&
+		errno != ENOENT
+	) {
+		log_msg( LOG_ERR, "smfi_descruct: could not delete socket file: %s\n", rt_setting.socket_file );
+		return errno;
+	}
+	return 0;
 }

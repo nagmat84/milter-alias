@@ -33,6 +33,13 @@ extern struct smfiDesc const FILTER_DESC;
  *
  * @return Zero on success, non-zero in case of failure.
  */
-int smfi_setup( void );
+int setup_smfi( void );
+
+/**
+ * Cleans up leftovers from mail filter.
+ *
+ * @return Zero on success, non-zero in case of failure.
+ */
+int cleanup_smfi( void );
 
 #endif
