@@ -14,4 +14,11 @@
  */
 int deamonize( void );
 
+/**
+ * Cleans up leftovers from daemon.
+ *
+ * @return Zero on success, non-zero in case of failure.
+ */
+int cleanup_daemon( void );
+
 #endif

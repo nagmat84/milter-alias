@@ -55,7 +55,7 @@ int main( int argc, char* argv[] ) {
 
 	log_rt_settings();
 
-	result_code = smfi_setup();
+	result_code = setup_smfi();
 	if( result_code != EX_OK ) {
 		log_msg( LOG_NOTICE, "%s terminating ...\n", argv[0] );
 		notify_sm_failed( result_code, "initialization failed" );
@@ -81,9 +81,23 @@ int main( int argc, char* argv[] ) {
 	}
 
 	result_code = disconnect_ldap();
+	if( result_code != EX_OK ) {
+		log_msg( LOG_ERR, "smfi_main failed\n" );
+		notify_sm_failed( result_code, "disconnecting from LDAP failed" );
+	}
 
-	if( rt_setting.is_daemonized && rt_setting.pid_file != NULL ) {
-		unlink( rt_setting.pid_file );
+	result_code = cleanup_smfi();
+	if( result_code != EX_OK ) {
+		result_code = EX_SOFTWARE;
+		log_msg( LOG_ERR, "cleanup_smfi failed\n" );
+		notify_sm_failed( result_code, "cleanup of mail filter failed" );
+	}
+
+	result_code = cleanup_daemon();
+	if( result_code != EX_OK ) {
+		result_code = EX_SOFTWARE;
+		log_msg( LOG_ERR, "cleanup_daemon failed\n" );
+		notify_sm_failed( result_code, "cleanup of daemon failed" );
 	}
 
 	log_msg( LOG_NOTICE, "%s terminating ...\n", argv[0] );

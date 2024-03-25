@@ -92,3 +92,16 @@ int deamonize( void ) {
 		return -1;
 	return 0;
 }
+
+int cleanup_daemon( void ) {
+	if(
+		rt_setting.is_daemonized &&
+		rt_setting.pid_file != NULL &&
+		unlink( rt_setting.pid_file ) != 0 &&
+		errno != ENOENT
+	) {
+		log_msg( LOG_ERR, "cleanup_daemon: could not delete PID file: %s\n", rt_setting.pid_file );
+		return errno;
+	}
+	return 0;
+}
