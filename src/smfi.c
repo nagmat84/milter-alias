@@ -36,7 +36,7 @@ struct smfiDesc const FILTER_DESC = {
 
 int setup_smfi( void ) {
 	if( mkpdir( rt_setting.socket_file, 0755 ) != 0 && errno != EEXIST ) {
-		log_msg( LOG_ERR, "could not create parent directory for socket file %s: %s", rt_setting.pid_file, strerror( errno ) );
+		log_msg( LOG_ERR, "could not create parent directory for socket file %s: %s", rt_setting.socket_file, strerror( errno ) );
 		return -1;
 	}
 
