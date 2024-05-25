@@ -7,6 +7,7 @@ pkg_check_modules(SYSTEMD REQUIRED IMPORTED_TARGET libsystemd)
 add_executable(
 	milter-alias
 	daemon.c
+	extfile.c
 	extldap.c
 	extstring.c
 	ini_parser.c

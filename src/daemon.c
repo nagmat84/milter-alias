@@ -9,6 +9,7 @@
 #include "daemon.h"
 #include "log.h"
 #include "runtime_setting.h"
+#include "extfile.h"
 
 static char const * const DEV_NULL = "/dev/null";
 
@@ -52,29 +53,34 @@ static int detach_std_io( void ) {
 }
 
 static int create_pid_file( void ) {
-	if( rt_setting.pid_file != NULL ) {
-		if( unlink( rt_setting.pid_file ) != 0 && errno != ENOENT ) {
-			log_msg( LOG_WARNING, "could not unlink old pid file %s: %s", rt_setting.pid_file, strerror( errno ) );
-		}
-		int const save_umask = umask( 022 );
-		FILE* pid_file = fopen( rt_setting.pid_file, "w" );
-		umask( save_umask );
-		if( pid_file == NULL ) {
-			log_msg( LOG_ERR, "could not open %s: %s\n", rt_setting.pid_file, strerror( errno ) );
-			return -1;
-		}
-		fprintf( pid_file, "%ld\n", (long) getpid() );
-		if( ferror( pid_file ) ) {
-			log_msg( LOG_ERR, "could not write to pid file %s: %s\n", rt_setting.pid_file, strerror( errno ) );
-			clearerr( pid_file );
-			fclose( pid_file );
-			return -1;
-		}
-		if( fclose( pid_file ) != 0 ) {
-			log_msg( LOG_ERR, "could not close pid file %s: %s\n", rt_setting.pid_file, strerror( errno ) );
-			return -1;
-		}
+	if( rt_setting.pid_file == NULL ) return 0;
+
+	if( mkpdir( rt_setting.pid_file, 0755 ) != 0 && errno != EEXIST ) {
+		log_msg( LOG_ERR, "could not create parent directory for pid file %s: %s", rt_setting.pid_file, strerror( errno ) );
+		return -1;
 	}
+	if( unlink( rt_setting.pid_file ) != 0 && errno != ENOENT ) {
+		log_msg( LOG_WARNING, "could not unlink old pid file %s: %s", rt_setting.pid_file, strerror( errno ) );
+	}
+	int const save_umask = umask( 022 );
+	FILE* pid_file = fopen( rt_setting.pid_file, "w" );
+	umask( save_umask );
+	if( pid_file == NULL ) {
+		log_msg( LOG_ERR, "could not open %s: %s\n", rt_setting.pid_file, strerror( errno ) );
+		return -1;
+	}
+	fprintf( pid_file, "%ld\n", (long) getpid() );
+	if( ferror( pid_file ) ) {
+		log_msg( LOG_ERR, "could not write to pid file %s: %s\n", rt_setting.pid_file, strerror( errno ) );
+		clearerr( pid_file );
+		fclose( pid_file );
+		return -1;
+	}
+	if( fclose( pid_file ) != 0 ) {
+		log_msg( LOG_ERR, "could not close pid file %s: %s\n", rt_setting.pid_file, strerror( errno ) );
+		return -1;
+	}
+
 	return 0;
 }
 
