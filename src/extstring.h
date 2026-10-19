@@ -7,21 +7,19 @@
  */
 
 /**
- * Replaces a all occurences of a substring with another substring.
+ * Replaces a all occurrences of a substring with another substring.
  *
  * This method allocates a new string buffer and returns it.
  * The caller must free that string buffer.
- * If no replacedment happens (e.g. if no substring is found), the returned
- * buffer is a copy of the original string.
- * Even with nothing is actually replaced, the returned copy must be freed
- * anyway.
+ * If nothing is replaced (e.g. if the substring is not found), the returned
+ * buffer is a copy of the original string which must be freed by the caller.
  * In case of an error, the method returns `NULL`.
  *
  * Source: https://stackoverflow.com/a/779960/2690527
  *
  * @param orig The original string
  * @param old  The substring to be replaced
- * @param new  The substring for replacedment
+ * @param new  The substring for replacement
  * @return A freshly allocated buffer containing the result string or `NULL`
  * in case of an error.
  */
